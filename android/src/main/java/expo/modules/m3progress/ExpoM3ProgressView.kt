@@ -190,23 +190,36 @@ class ExpoM3ProgressView(context: Context, appContext: AppContext) : ExpoView(co
       f.get(indicator)
     } catch (_: Throwable) { null }
 
-    listOfNotNull(indicator, spec).forEach { target ->
+    val targets = listOfNotNull(indicator, spec, indicator.progressDrawable, indicator.indeterminateDrawable)
+    val cornerPx = if (trackCornerRadius >= 0) dpToPx(trackCornerRadius.toFloat()) else indicator.trackThickness / 2
+
+    targets.forEach { target ->
+      // Gaps
+      invokeMethod(target, "setIndicatorTrackGapSize", gapPx)
       invokeMethod(target, "setIndicatorTrackGap", gapPx)
-      invokeMethod(target, "setTrackGap", gapPx) // Fallback name
+      invokeMethod(target, "setTrackGapSize", gapPx)
+      invokeMethod(target, "setTrackGap", gapPx)
       
+      // Corners
+      invokeMethod(target, "setTrackCornerRadius", cornerPx)
+      invokeMethod(target, "setIndicatorCornerRadius", cornerPx)
+      
+      // Stop indicator (Linear only)
       if (indicator is LinearProgressIndicator) {
         invokeMethod(target, "setTrackStopIndicatorSize", stopSizePx)
       }
     }
 
     // Wavy props
-    // We apply them to the indicator directly, and they will delegate to the spec if needed,
-    // but the library usually has these methods on the BaseProgressIndicator class itself in the bridge versions.
     applyWaveProps(indicator)
 
     // Visibility and Animation
     indicator.visibility = View.VISIBLE
     if (indicator.isIndeterminate) {
+       indicator.show()
+    } else {
+       // For determinate, we might need a reset to see those fresh gaps
+       indicator.hide()
        indicator.show()
     }
     indicator.invalidate()
@@ -217,20 +230,26 @@ class ExpoM3ProgressView(context: Context, appContext: AppContext) : ExpoView(co
       var cls: Class<*>? = obj.javaClass
       var method: Method? = null
       while (cls != null && method == null) {
-        try {
-          // Try public methods first
-          method = cls.getMethod(methodName, Int::class.javaPrimitiveType)
-        } catch (_: NoSuchMethodException) {
-          try {
-            // Try declared (private/protected)
-            method = cls.getDeclaredMethod(methodName, Int::class.javaPrimitiveType)
-          } catch (_: NoSuchMethodException) {
-            cls = cls.superclass
-          }
+        // Try to find the method among all declared methods (including private/protected)
+        // and regardless of exact parameter type (Int vs Float vs Long) if needed,
+        // but let's stick to Int/Float for now.
+        method = cls.declaredMethods.find { it.name == methodName && it.parameterTypes.size == 1 }
+        if (method == null) {
+          cls = cls.superclass
         }
       }
-      method?.isAccessible = true
-      method?.invoke(obj, value)
+      
+      if (method != null) {
+        method.isAccessible = true
+        val paramType = method.parameterTypes[0]
+        val args = when {
+          paramType == Int::class.javaPrimitiveType || paramType == Int::class.java -> value
+          paramType == Float::class.javaPrimitiveType || paramType == Float::class.java -> value.toFloat()
+          paramType == Long::class.javaPrimitiveType || paramType == Long::class.java -> value.toLong()
+          else -> value
+        }
+        method.invoke(obj, args)
+      }
     } catch (_: Throwable) {}
   }
 
@@ -242,8 +261,8 @@ class ExpoM3ProgressView(context: Context, appContext: AppContext) : ExpoView(co
       f.get(indicator)
     } catch (_: Throwable) { null }
 
-    // Some versions have it on the view, some on the spec. We'll try BOTH to be sure.
-    listOfNotNull(indicator, spec).forEach { target ->
+    val targets = listOfNotNull(indicator, spec, indicator.progressDrawable, indicator.indeterminateDrawable)
+    targets.forEach { target ->
         if (wavy) {
           invokeMethod(target, "setWavelength", dpToPx(wavelengthDp))
           invokeMethod(target, "setWaveAmplitude", dpToPx(waveAmplitudeDp))
