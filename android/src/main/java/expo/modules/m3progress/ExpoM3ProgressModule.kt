@@ -44,11 +44,11 @@ class ExpoM3ProgressModule : Module() {
         view.setWaveAmplitudeRampMax((v ?: 0.9).toFloat())
       }
 
-      Prop("indicatorColor") { view: ExpoM3ProgressView, v: String? ->
+      Prop("indicatorColor") { view: ExpoM3ProgressView, v: Int? ->
         view.setIndicatorColor(v)
       }
 
-      Prop("trackColor") { view: ExpoM3ProgressView, v: String? ->
+      Prop("trackColor") { view: ExpoM3ProgressView, v: Int? ->
         view.setTrackColor(v)
       }
 

@@ -1,9 +1,9 @@
 import * as React from "react";
-import { ActivityIndicator, Platform } from "react-native";
+import { ActivityIndicator, Platform, processColor } from "react-native";
 import { requireNativeViewManager } from "expo-modules-core";
 import { ExpoM3ProgressViewProps } from "./ExpoM3Progress.types";
 
-const NativeView: React.ComponentType<ExpoM3ProgressViewProps> =
+const NativeView: React.ComponentType<any> =
   requireNativeViewManager("ExpoM3Progress");
 
 export default function ExpoM3ProgressView(props: ExpoM3ProgressViewProps) {
@@ -43,8 +43,8 @@ export default function ExpoM3ProgressView(props: ExpoM3ProgressViewProps) {
     <NativeView
       style={[defaultStyle, style]}
       variant={variant}
-      indicatorColor={indicatorColor}
-      trackColor={trackColor}
+      indicatorColor={processColor(indicatorColor)}
+      trackColor={processColor(trackColor)}
       trackCornerRadius={trackCornerRadius}
       trackThickness={trackThickness}
       indicatorSize={indicatorSize}

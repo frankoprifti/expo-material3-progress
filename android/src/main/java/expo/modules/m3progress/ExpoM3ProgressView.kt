@@ -69,13 +69,13 @@ class ExpoM3ProgressView(context: Context, appContext: AppContext) : ExpoView(co
   fun setWaveAmplitudeRampMin(v: Float) { rampMin = v; applyToCurrent() }
   fun setWaveAmplitudeRampMax(v: Float) { rampMax = v; applyToCurrent() }
 
-  fun setIndicatorColor(color: String?) {
-    indicatorColorInt = parseColorOrNull(color)
+  fun setIndicatorColor(color: Int?) {
+    indicatorColorInt = color
     applyToCurrent()
   }
 
-  fun setTrackColor(color: String?) {
-    trackColorInt = parseColorOrNull(color)
+  fun setTrackColor(color: Int?) {
+    trackColorInt = color
     applyToCurrent()
   }
 
@@ -192,6 +192,7 @@ class ExpoM3ProgressView(context: Context, appContext: AppContext) : ExpoView(co
 
     val targets = listOfNotNull(indicator, spec, indicator.progressDrawable, indicator.indeterminateDrawable)
     val cornerPx = if (trackCornerRadius >= 0) dpToPx(trackCornerRadius.toFloat()) else indicator.trackThickness / 2
+    val thickPx = if (trackThickness >= 0) dpToPx(trackThickness.toFloat()) else dpToPx(4f)
 
     targets.forEach { target ->
       // Gaps
@@ -203,6 +204,23 @@ class ExpoM3ProgressView(context: Context, appContext: AppContext) : ExpoView(co
       // Corners
       invokeMethod(target, "setTrackCornerRadius", cornerPx)
       invokeMethod(target, "setIndicatorCornerRadius", cornerPx)
+
+      // Thickness
+      invokeMethod(target, "setTrackThickness", thickPx)
+      
+      // Colors
+      indicatorColorInt?.let { color ->
+        invokeMethod(target, "setIndicatorColor", color)
+      }
+      if (trackColorInt != null) {
+        invokeMethod(target, "setTrackColor", trackColorInt!!)
+        // Ensure track is visible
+        invokeMethod(target, "setShowTrack", 1)
+        invokeMethod(target, "setTrackVisible", 1)
+      } else {
+        // Even if no color provided, some themes hide it by default
+        invokeMethod(target, "setShowTrack", 1)
+      }
       
       // Stop indicator (Linear only)
       if (indicator is LinearProgressIndicator) {
@@ -246,6 +264,7 @@ class ExpoM3ProgressView(context: Context, appContext: AppContext) : ExpoView(co
           paramType == Int::class.javaPrimitiveType || paramType == Int::class.java -> value
           paramType == Float::class.javaPrimitiveType || paramType == Float::class.java -> value.toFloat()
           paramType == Long::class.javaPrimitiveType || paramType == Long::class.java -> value.toLong()
+          paramType == Boolean::class.javaPrimitiveType || paramType == Boolean::class.java -> value != 0
           else -> value
         }
         method.invoke(obj, args)
