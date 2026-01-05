@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["ExpoM3ProgressModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.m3progress.ExpoM3ProgressModule"]
+  }
+}

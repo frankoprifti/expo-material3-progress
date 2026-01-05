@@ -1,0 +1,10 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "expo-m3-progress": ["../src/index"],
+      "expo-m3-progress/*": ["../src/*"]
+    }
+  }
+}
