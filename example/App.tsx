@@ -29,21 +29,23 @@ export default function App() {
   const [isWavy, setIsWavy] = React.useState(true);
   const [isIndeterminate, setIsIndeterminate] = React.useState(true);
   const [progress, setProgress] = React.useState(0.5);
+
   const [amplitude, setAmplitude] = React.useState(4);
   const [length, setLength] = React.useState(24);
   const [speed, setSpeed] = React.useState(2);
+
   const [cornerRadius, setCornerRadius] = React.useState(10);
   const [thickness, setThickness] = React.useState(8);
   const [gap, setGap] = React.useState(6);
   const [stopSize, setStopSize] = React.useState(8);
   const [circularSize, setCircularSize] = React.useState(64);
 
-  const [hue, setHue] = React.useState(260); // M3 Purple
-  const [trackHue, setTrackHue] = React.useState(260);
-  const [trackOpacity, setTrackOpacity] = React.useState(0.15);
+  // Fully-opaque color pickers (no alpha)
+  const [hue, setHue] = React.useState(260); // Indicator hue
+  const [trackHue, setTrackHue] = React.useState(260); // Track hue
 
   const indicatorColor = `hsl(${hue}, 70%, 50%)`;
-  const trackColor = `rgba(${parseInt(M3_COLORS.primary.slice(1, 3), 16)}, ${parseInt(M3_COLORS.primary.slice(3, 5), 16)}, ${parseInt(M3_COLORS.primary.slice(5, 7), 16)}, ${trackOpacity})`;
+  const trackColor = `hsl(${trackHue}, 35%, 80%)`; // softer, fully opaque track
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -66,7 +68,7 @@ export default function App() {
               progress={progress}
               indicatorColor={indicatorColor}
               trackColor={trackColor}
-              style={{ width: '100%', height: thickness + (gap * 2) }}
+              style={{ width: "100%", height: thickness + gap * 2 }}
             />
           </M3Card>
 
@@ -194,19 +196,16 @@ export default function App() {
           <View style={styles.divider} />
 
           <View style={styles.colorSection}>
-            <Text style={styles.controlLabel}>Indicator Hue</Text>
+            <Text style={styles.controlLabel}>Indicator Color</Text>
             <HuePicker hue={hue} onChange={setHue} color={indicatorColor} />
           </View>
 
           <View style={styles.colorSection}>
-            <Text style={styles.controlLabel}>Track Appearance (Opacity)</Text>
-            <ControlSlider
-              label={`Track Visibility: ${Math.round(trackOpacity * 100)}%`}
-              value={trackOpacity}
-              onChange={setTrackOpacity}
-              min={0}
-              max={0.5}
-              style={{ marginTop: 8 }}
+            <Text style={styles.controlLabel}>Track Color</Text>
+            <HuePicker
+              hue={trackHue}
+              onChange={setTrackHue}
+              color={trackColor}
             />
           </View>
         </View>
@@ -215,7 +214,15 @@ export default function App() {
   );
 }
 
-function M3Card({ label, children, center }: { label: string, children: React.ReactNode, center?: boolean }) {
+function M3Card({
+  label,
+  children,
+  center,
+}: {
+  label: string;
+  children: React.ReactNode;
+  center?: boolean;
+}) {
   return (
     <View style={styles.previewCard}>
       <Text style={styles.cardLabel}>{label}</Text>
@@ -226,13 +233,36 @@ function M3Card({ label, children, center }: { label: string, children: React.Re
   );
 }
 
-function HuePicker({ hue, onChange, color }: { hue: number, onChange: (h: number) => void, color: string }) {
+function HuePicker({
+  hue,
+  onChange,
+  color,
+}: {
+  hue: number;
+  onChange: (h: number) => void;
+  color: string;
+}) {
   const onTouch = (e: any) => {
     const availableWidth = width - 80;
     const x = e.nativeEvent.locationX;
     const p = Math.max(0, Math.min(1, x / availableWidth));
     onChange(Math.round(p * 360));
   };
+
+  // Fake gradient with segments (no external libs)
+  const segments = 36;
+  const bars = Array.from({ length: segments }, (_, i) => {
+    const h = Math.round((i / (segments - 1)) * 360);
+    return (
+      <View
+        key={i}
+        style={{
+          flex: 1,
+          backgroundColor: `hsl(${h}, 90%, 55%)`,
+        }}
+      />
+    );
+  });
 
   return (
     <View style={styles.hueContainer}>
@@ -243,11 +273,17 @@ function HuePicker({ hue, onChange, color }: { hue: number, onChange: (h: number
         onResponderMove={onTouch}
         style={styles.hueRail}
       >
-        <View style={styles.hueStrip} />
-        <View style={[styles.hueThumb, {
-          left: `${(hue / 360) * 100}%`,
-          backgroundColor: color
-        }]} />
+        <View style={styles.hueStrip}>{bars}</View>
+
+        <View
+          style={[
+            styles.hueThumb,
+            {
+              left: `${(hue / 360) * 100}%`,
+              backgroundColor: color,
+            },
+          ]}
+        />
       </View>
     </View>
   );
@@ -260,7 +296,7 @@ function ControlSlider({
   min,
   max,
   disabled,
-  style
+  style,
 }: {
   label: string;
   value: number;
@@ -292,7 +328,15 @@ function ControlSlider({
         onResponderMove={onTouch}
         style={styles.sliderRail}
       >
-        <View style={[styles.sliderFill, { width: `${fillWidth}%`, backgroundColor: disabled ? M3_COLORS.outline : M3_COLORS.primary }]} />
+        <View
+          style={[
+            styles.sliderFill,
+            {
+              width: `${fillWidth}%`,
+              backgroundColor: disabled ? M3_COLORS.outline : M3_COLORS.primary,
+            },
+          ]}
+        />
       </View>
     </View>
   );
@@ -406,14 +450,15 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     justifyContent: "center",
+    paddingHorizontal: 2,
   },
   hueStrip: {
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: M3_COLORS.surfaceVariant,
+    height: 14,
+    borderRadius: 7,
+    overflow: "hidden",
+    flexDirection: "row",
     borderWidth: 1,
     borderColor: M3_COLORS.outline,
-    opacity: 0.5,
   },
   hueThumb: {
     position: "absolute",
