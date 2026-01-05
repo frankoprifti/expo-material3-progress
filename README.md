@@ -6,7 +6,7 @@ This library provides highly customizable progress indicators following the Mate
 
 <div align="center">
   <!-- Place your GIF preview here -->
-  <img src="https://raw.githubusercontent.com/frankoprifti/expo-material3-progress/main/assets/preview.gif" alt="expo-m3-progress preview" />
+  <img width="300" src="https://raw.githubusercontent.com/frankoprifti/expo-material3-progress/main/assets/preview.gif" alt="expo-m3-progress preview" />
 </div>
 
 ## Features
