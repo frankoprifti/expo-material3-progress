@@ -199,7 +199,9 @@ class ExpoM3ProgressView(context: Context, appContext: AppContext) : ExpoView(co
       }
     }
 
-    // Wavy props via reflection
+    // Wavy props
+    // We apply them to the indicator directly, and they will delegate to the spec if needed,
+    // but the library usually has these methods on the BaseProgressIndicator class itself in the bridge versions.
     applyWaveProps(indicator)
 
     // Visibility and Animation
@@ -216,9 +218,11 @@ class ExpoM3ProgressView(context: Context, appContext: AppContext) : ExpoView(co
       var method: Method? = null
       while (cls != null && method == null) {
         try {
+          // Try public methods first
           method = cls.getMethod(methodName, Int::class.javaPrimitiveType)
         } catch (_: NoSuchMethodException) {
           try {
+            // Try declared (private/protected)
             method = cls.getDeclaredMethod(methodName, Int::class.javaPrimitiveType)
           } catch (_: NoSuchMethodException) {
             cls = cls.superclass
@@ -231,39 +235,39 @@ class ExpoM3ProgressView(context: Context, appContext: AppContext) : ExpoView(co
   }
 
   private fun applyWaveProps(indicator: BaseProgressIndicator<*>) {
+    // If the indicator is not natively supporting wavy props, we try the spec as well.
     val spec = try {
       val f = BaseProgressIndicator::class.java.getDeclaredField("spec")
       f.isAccessible = true
       f.get(indicator)
     } catch (_: Throwable) { null }
 
-    val target = spec ?: indicator
-
-    try {
-      if (wavy) {
-        invokeMethod(target, "setWavelength", dpToPx(wavelengthDp))
-        invokeMethod(target, "setWaveAmplitude", dpToPx(waveAmplitudeDp))
-        invokeMethod(target, "setWaveSpeed", dpToPx(waveSpeedDp))
-        
-        // Ramp (Two floats)
-        try {
-          var cls: Class<*>? = target.javaClass
-          var m: Method? = null
-          while (cls != null && m == null) {
-            try {
-              m = cls.getDeclaredMethod("setWaveAmplitudeRampProgressRange", Float::class.javaPrimitiveType, Float::class.javaPrimitiveType)
-            } catch (_: NoSuchMethodException) {
-              cls = cls.superclass
+    // Some versions have it on the view, some on the spec. We'll try BOTH to be sure.
+    listOfNotNull(indicator, spec).forEach { target ->
+        if (wavy) {
+          invokeMethod(target, "setWavelength", dpToPx(wavelengthDp))
+          invokeMethod(target, "setWaveAmplitude", dpToPx(waveAmplitudeDp))
+          invokeMethod(target, "setWaveSpeed", dpToPx(waveSpeedDp))
+          
+          // Ramp
+          try {
+            var cls: Class<*>? = target.javaClass
+            var m: Method? = null
+            while (cls != null && m == null) {
+              try {
+                m = cls.getDeclaredMethod("setWaveAmplitudeRampProgressRange", Float::class.javaPrimitiveType, Float::class.javaPrimitiveType)
+              } catch (_: NoSuchMethodException) {
+                cls = cls.superclass
+              }
             }
-          }
-          m?.isAccessible = true
-          m?.invoke(target, rampMin, rampMax)
-        } catch (_: Throwable) {}
-      } else {
-        invokeMethod(target, "setWavelength", 0)
-        invokeMethod(target, "setWaveAmplitude", 0)
-        invokeMethod(target, "setWaveSpeed", 0)
-      }
-    } catch (_: Throwable) {}
+            m?.isAccessible = true
+            m?.invoke(target, rampMin, rampMax)
+          } catch (_: Throwable) {}
+        } else {
+          invokeMethod(target, "setWavelength", 0)
+          invokeMethod(target, "setWaveAmplitude", 0)
+          invokeMethod(target, "setWaveSpeed", 0)
+        }
+    }
   }
 }
