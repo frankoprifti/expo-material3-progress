@@ -18,16 +18,16 @@
   "keywords": [
     "react-native",
     "expo",
-    "expo-m3-progress",
-    "ExpoM3Progress"
+    "expo-material3-progress",
+    "ExpoMaterial3Progress"
   ],
-  "repository": "https://github.com/frankoprifti/expo-m3-progress",
+  "repository": "https://github.com/frankoprifti/expo-material3-progress",
   "bugs": {
-    "url": "https://github.com/frankoprifti/expo-m3-progress/issues"
+    "url": "https://github.com/frankoprifti/expo-material3-progress/issues"
   },
   "author": "Franko Prifti <frankoprifti@gmail.com> (https://github.com/frankoprifti)",
   "license": "MIT",
-  "homepage": "https://github.com/frankoprifti/expo-m3-progress#readme",
+  "homepage": "https://github.com/frankoprifti/expo-material3-progress#readme",
   "dependencies": {},
   "devDependencies": {
     "@types/react": "~19.1.0",

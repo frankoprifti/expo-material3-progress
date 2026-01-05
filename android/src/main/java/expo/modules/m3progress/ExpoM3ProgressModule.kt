@@ -2,49 +2,75 @@ package expo.modules.m3progress
 
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
-import java.net.URL
 
 class ExpoM3ProgressModule : Module() {
-  // Each module class must implement the definition function. The definition consists of components
-  // that describes the module's functionality and behavior.
-  // See https://docs.expo.dev/modules/module-api for more details about available components.
   override fun definition() = ModuleDefinition {
-    // Sets the name of the module that JavaScript code will use to refer to the module. Takes a string as an argument.
-    // Can be inferred from module's class name, but it's recommended to set it explicitly for clarity.
-    // The module will be accessible from `requireNativeModule('ExpoM3Progress')` in JavaScript.
     Name("ExpoM3Progress")
 
-    // Defines constant property on the module.
-    Constant("PI") {
-      Math.PI
-    }
-
-    // Defines event names that the module can send to JavaScript.
-    Events("onChange")
-
-    // Defines a JavaScript synchronous function that runs the native code on the JavaScript thread.
-    Function("hello") {
-      "Hello world! 👋"
-    }
-
-    // Defines a JavaScript function that always returns a Promise and whose native code
-    // is by default dispatched on the different thread than the JavaScript runtime runs on.
-    AsyncFunction("setValueAsync") { value: String ->
-      // Send an event to JavaScript.
-      sendEvent("onChange", mapOf(
-        "value" to value
-      ))
-    }
-
-    // Enables the module to be used as a native view. Definition components that are accepted as part of
-    // the view definition: Prop, Events.
     View(ExpoM3ProgressView::class) {
-      // Defines a setter for the `url` prop.
-      Prop("url") { view: ExpoM3ProgressView, url: URL ->
-        view.webView.loadUrl(url.toString())
+      Prop("variant") { view: ExpoM3ProgressView, v: String? ->
+        view.setVariant(v ?: "circular")
       }
-      // Defines an event that the view can send to JavaScript.
-      Events("onLoad")
+
+      Prop("indeterminate") { view: ExpoM3ProgressView, v: Boolean? ->
+        view.setIndeterminate(v ?: true)
+      }
+
+      Prop("progress") { view: ExpoM3ProgressView, v: Double? ->
+        view.setProgress((v ?: 0.0).toFloat())
+      }
+
+      Prop("wavy") { view: ExpoM3ProgressView, v: Boolean? ->
+        view.setWavy(v ?: false)
+      }
+
+      Prop("waveAmplitude") { view: ExpoM3ProgressView, v: Double? ->
+        view.setWaveAmplitude((v ?: 0.0).toFloat())
+      }
+
+      Prop("wavelength") { view: ExpoM3ProgressView, v: Double? ->
+        view.setWavelength((v ?: 0.0).toFloat())
+      }
+
+      Prop("waveSpeed") { view: ExpoM3ProgressView, v: Double? ->
+        view.setWaveSpeed((v ?: 0.0).toFloat())
+      }
+
+      Prop("waveAmplitudeRampMin") { view: ExpoM3ProgressView, v: Double? ->
+        view.setWaveAmplitudeRampMin((v ?: 0.1).toFloat())
+      }
+
+      Prop("waveAmplitudeRampMax") { view: ExpoM3ProgressView, v: Double? ->
+        view.setWaveAmplitudeRampMax((v ?: 0.9).toFloat())
+      }
+
+      Prop("indicatorColor") { view: ExpoM3ProgressView, v: String? ->
+        view.setIndicatorColor(v)
+      }
+
+      Prop("trackColor") { view: ExpoM3ProgressView, v: String? ->
+        view.setTrackColor(v)
+      }
+
+      Prop("trackCornerRadius") { view: ExpoM3ProgressView, v: Int? ->
+        view.setTrackCornerRadius(v ?: -1)
+      }
+
+      Prop("trackThickness") { view: ExpoM3ProgressView, v: Int? ->
+        view.setTrackThickness(v ?: -1)
+      }
+
+      Prop("indicatorSize") { view: ExpoM3ProgressView, v: Int? ->
+        view.setIndicatorSize(v ?: -1)
+      }
+
+      Prop("indicatorTrackGap") { view: ExpoM3ProgressView, v: Int? ->
+        view.setIndicatorTrackGap(v ?: -1)
+      }
+
+      Prop("trackStopIndicatorSize") { view: ExpoM3ProgressView, v: Int? ->
+        view.setTrackStopIndicatorSize(v ?: -1)
+      }
     }
   }
 }
